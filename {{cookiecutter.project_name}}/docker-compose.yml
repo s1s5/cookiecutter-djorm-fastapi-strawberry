@@ -1,0 +1,54 @@
+version: '3.5'
+
+volumes:
+  pg-data:
+
+
+x-app-base:
+  &app-base
+  volumes:
+    - .:/app
+  depends_on:
+    - db
+  user: ${USER_ID:-1000}:${GROUP_ID:-1000}
+
+x-env:
+  &env
+  DEBUG: "True"
+  DATABASE_URL: postgresql://postgres:postgres@db/postgres
+
+
+services:
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+  app:
+    <<: *app-base
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      <<: *env
+    ports:
+      - "8000:8000"
+    command: uvicorn --reload asgi:app --host 0.0.0.0 --port 8000
+
+  admin:
+    image: s1s5/django-admin
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db/postgres
+      {{cookiecutter.project_name.upper()}}_DATABASE_URL: postgresql://postgres:postgres@db/postgres
+      SESSION_COOKIE_NAME: "local-django-admin"
+      APPS: |
+        - name: {{cookiecutter.project_name}}.{{cookiecutter.project_name}}
+          db: {{cookiecutter.project_name}}
+    volumes:
+      - .:/app/admin/{{cookiecutter.project_name}}
+    ports:
+      - "8001:8000"
+    depends_on:
+      - db

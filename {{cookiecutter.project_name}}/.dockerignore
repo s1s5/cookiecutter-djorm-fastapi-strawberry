@@ -1,0 +1,8 @@
+*.pyc
+**/.venv
+**/.coverage
+**/.git
+**/.mypy_cache
+**/__pycache__
+**/.cache
+**/htmlcov

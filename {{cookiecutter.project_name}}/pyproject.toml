@@ -1,0 +1,100 @@
+[tool.poetry]
+name = "{{cookiecutter.project_name}}"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+uvicorn = {extras = ["standard"], version = "^0"}
+psycopg2-binary = "^2"
+coverage = {extras = ["toml"], version = "^6"}
+strawberry-graphql = {version = "^0", extras = ["asgi", "debug-server"]}
+fastapi = "^0"
+Django = "^4"
+django-environ = "^0"
+
+[tool.poetry.dev-dependencies]
+black = "^22"
+flake8 = "^4"
+isort = "^5"
+pre-commit = "^2"
+radon = "^5"
+mypy = "^0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.black]
+line-length = 110
+exclude = """
+/(\\.git/
+  |\\.eggs
+  |\\.hg
+  |__pycache__
+  |\\.cache
+  |\\.ipynb_checkpoints
+  |\\.mypy_cache
+  |\\.pytest_cache
+  |\\.tox
+  |\\.venv
+  |migrations
+)/
+"""
+
+[tool.mypy]
+plugins = ["strawberry.ext.mypy_plugin", "pydantic.mypy"]
+namespace_packages = true
+ignore_missing_imports = true  # スタブがないライブラリを無視する
+exclude = '(?x)(^.*settings\\.py$|/migrations/)'
+
+[tool.isort]
+line_length = 110
+multi_line_output = 3
+include_trailing_comma = true
+profile = "black"
+extend_skip_glob = ["**/migrations/*.py"]
+
+[tool.flake8]
+max-line-length = 110
+max-complexity = 18
+extend-ignore = "A0, B0, C4, E203,"  # blackと競合してる
+exclude = [
+"**/migrations/*.py"
+]
+radon-max-cc = 10
+
+[tool.coverage.report]
+exclude_lines = [
+    # Have to re-enable the standard pragma
+    "pragma: no cover",
+
+    # Don't complain about missing debug-only code:
+    "def __repr__",
+    "if self.debug",
+
+    # Don't complain if tests don't hit defensive assertion code:
+    "raise AssertionError",
+    "raise NotImplementedError",
+
+    # Don't complain if non-runnable code isn't run:
+    "if 0:",
+    "if __name__ == .__main__.:",
+]
+
+omit = [
+    "*/migrations/*",
+    "*/snapshots/*",
+    "*/tests/*",
+    "*/admin.py",
+    "*/factories.py",
+]
+
+ignore_errors = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+

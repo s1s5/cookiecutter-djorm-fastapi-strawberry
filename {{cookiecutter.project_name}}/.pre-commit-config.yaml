@@ -1,0 +1,130 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
+      - id: check-yaml
+      - id: debug-statements
+      - id: detect-aws-credentials
+        args: [--allow-missing-credentials]
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: name-tests-test
+        args: [--django]
+      - id: pretty-format-json
+        args: [--autofix]
+
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: '4.0.1'
+    hooks:
+      - id: flake8
+        entry: pflake8
+        additional_dependencies:
+          - pyproject-flake8
+          - radon
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: 'v0.961'
+    hooks:
+      - id: mypy
+        args: [--python-version=3.10]
+        additional_dependencies:
+          - django-stubs
+          - django-stubs-ext
+          - django-environ
+          - django-split-settings
+          - strawberry-graphql
+          - types-aiofiles
+          - types-requests
+          - types-redis
+          - botostubs
+          - ulid-py
+          - PyYAML
+          - opentelemetry-sdk==1.11.1
+        exclude: (^.*/migrations/|settings\.py|core/)
+        stages: [commit]
+
+  - repo: https://github.com/psf/black
+    rev: '22.3.0'
+    hooks:
+      - id: black
+        args:
+          - --check
+        exclude: ^.*/migrations/
+        language_version: python3
+
+  - repo: https://github.com/pycqa/isort
+    rev: '5.10.1'
+    hooks:
+      - id: isort
+        args:
+          - --check-only
+        exclude: ^.*/migrations/
+        additional_dependencies:
+          - toml
+
+  - repo: local
+    hooks:
+      - id: migrations-check
+        language: system
+        name: Check for uncreated migrations.
+        entry: ./manage.py makemigrations --check --dry-run
+        pass_filenames: false
+        files: "models\\.py$"
+        stages: [commit]
+
+  - repo: local
+    hooks:
+      - id: schema-check
+        language: system
+        name: Check for schema.graphql
+        entry: python -m core export-schema schema --output schema.graphql
+        pass_filenames: false
+        always_run: true
+        stages: [commit]
+
+  - repo: local
+    hooks:
+      - id: unit-test
+        language: system
+        name: unit test
+        entry: python manage.py test --keepdb ccwrapper.tests
+        pass_filenames: false
+        always_run: true
+        stages: [commit]
+
+  - repo: local
+    hooks:
+      - id: check-submodule-dirty
+        language: system
+        name: Search for uncommitted changes
+        entry: /bin/bash -c "if [[ `git submodule -q foreach git status --short` ]]; then exit 1; fi; exit 0"
+        pass_filenames: false
+        always_run: true
+        stages: [commit]
+
+  - repo: local
+    hooks:
+      - id: check-submodule-unpushed
+        language: system
+        name: Search for unpushed changes
+        entry: /bin/bash -c 'if [[ `git submodule -q foreach git branch --verbose | egrep "ahead|behind"` ]]; then exit 1; fi; exit 0'
+        pass_filenames: false
+        always_run: true
+        stages: [push]
+
+  - repo: local
+    hooks:
+      - id: check-submodule-detached_head
+        language: system
+        name: Check for detached HEAD
+        entry: /bin/bash -c "if [[ `git submodule -q foreach git rev-parse --symbolic-full-name HEAD | grep HEAD` ]]; then exit 1; fi"
+        pass_filenames: false
+        always_run: true
+        stages: [push]
