@@ -1,19 +1,28 @@
 import os
+
+import django
+from django.conf import settings
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from strawberry.asgi import GraphQL
+from strawberry.printer import print_schema
+from strawberry.schema import BaseSchema
 from strawberry.utils.importer import import_module_symbol
-import django
-from django.conf import settings
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
 django.setup(set_prefix=False)
+
+schema: BaseSchema = import_module_symbol("schema:schema")  # type: ignore
+
+if settings.DEBUG:
+    with open("schema.graphql", "w") as fp:
+        print(print_schema(schema), file=fp)
 
 
 app = FastAPI(debug=settings.DEBUG)
 
 graphql_app = GraphQL(
-    schema=import_module_symbol("schema:schema"),
+    schema=schema,
     graphiql=settings.DEBUG,
     debug=settings.DEBUG,
     keep_alive=False,
