@@ -22,6 +22,9 @@ isort = "^5"
 pre-commit = "^2"
 radon = "^5"
 mypy = "^0"
+django-stubs = "*"
+django-stubs-ext = "*"
+
 
 [build-system]
 requires = ["poetry-core"]
@@ -46,10 +49,13 @@ exclude = """
 """
 
 [tool.mypy]
-plugins = ["strawberry.ext.mypy_plugin", "pydantic.mypy"]
+plugins = ["strawberry.ext.mypy_plugin", "pydantic.mypy", "mypy_django_plugin.main"]
 namespace_packages = true
 ignore_missing_imports = true  # スタブがないライブラリを無視する
 exclude = '(?x)(^.*settings\\.py$|/migrations/)'
+
+[tool.django-stubs]
+django_settings_module = "settings"
 
 [tool.isort]
 line_length = 110
